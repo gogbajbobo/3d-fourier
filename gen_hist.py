@@ -1,11 +1,13 @@
-import porespy as ps
+"""
+Generate 2D porous picture and calc gray values histogram
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
-import skimage as skim
-import skimage.filters as filters
+import generator
 
 im_size = 1000
-im_shape = [im_size, im_size]
+im_shape = np.ones(2, dtype=int) * im_size
 shape_ranges = tuple(int(i * im_size) for i in (0.0125, 0.025, 0.05, 0.1, 0.25, 0.5, 1))
 nrows = 3
 ncols = 7
@@ -14,28 +16,26 @@ figsize = (28, 9)
 fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
 plt.tight_layout()
 
-
-im = ps.generators.blobs(im_shape, blobiness=2)
+im = generator.blobs(im_shape, k=[1, 1])
 
 for i, r in enumerate(shape_ranges):
+    # show generated images
     center = im_size // 2
     start = center - r//2
     finish = center + r // 2
     axes[0, i].imshow(im[start:finish, start:finish], cmap='gray')
 
-im = im.astype(np.float)
-im[im > 0] = 0.7
-im[im == 0] = 0.3
-im = skim.util.random_noise(im, mode='poisson')
-im = filters.gaussian(im, sigma=1)
+im = generator.add_noise_to_image(im, high_value=0.7, low_value=0.3)
 
 for i, r in enumerate(shape_ranges):
+    # show generated images with noise
     center = im_size // 2
     start = center - r//2
     finish = center + r // 2
     axes[1, i].imshow(im[start:finish, start:finish], cmap='gray')
 
 for i, r in enumerate(shape_ranges):
+    # show images gray values histogram
     center = im_size // 2
     start = center - r//2
     finish = center + r // 2
