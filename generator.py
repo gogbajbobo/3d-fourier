@@ -9,8 +9,31 @@ from scipy import special
 import numpy as np
 import skimage as skim
 import skimage.filters as filters
+import matplotlib.pyplot as plt
+import time
+from datetime import timedelta
+import cv2
 
 
+def time_measurement(func):
+
+    def wrapper(*args, **kwargs):
+
+        start_time = time.perf_counter()
+
+        result = func(*args, **kwargs)
+
+        finish_time = time.perf_counter()
+        elapsed_time = finish_time - start_time
+
+        print(f'{ func.__name__ }() elapsed time: { timedelta(seconds=elapsed_time) }')
+
+        return result
+
+    return wrapper
+
+
+@time_measurement
 def norm_to_uniform(im, scale=None):
 
     if scale is None:
@@ -23,7 +46,7 @@ def norm_to_uniform(im, scale=None):
     return im
 
 
-def blobs(shape, k, porosity: float = 0.5, blobiness: int = 1):
+def blobs(shape, k, porosity: float = 0.5, blobiness: int = 1, show_figs: bool = False):
 
     blobiness = sp.array(blobiness)
     shape = sp.array(shape)
@@ -32,11 +55,85 @@ def blobs(shape, k, porosity: float = 0.5, blobiness: int = 1):
     sigma = sp.mean(shape)/(40*blobiness)
     sigma = sp.array(k) * sigma
     im = sp.random.random(shape)
+
     im = spim.gaussian_filter(im, sigma=sigma)
+
     im = norm_to_uniform(im, scale=[0, 1])
+    im_test, _ = image_histogram_equalization(im)
+    im_test -= np.min(im_test)
+    im_test *= 1.0 / im_test.max()
+
+    im_test_opencv = opencv_histogram_equalization(im)
+    im_test_opencv -= np.min(im_test_opencv)
+    im_test_opencv = im_test_opencv / im_test_opencv.max()
+
+    im_test_clahe = opencv_clahe_hist_equal(im)
+    im_test_clahe -= np.min(im_test_clahe)
+    im_test_clahe = im_test_clahe / im_test_clahe.max()
+
+
+    # if show_figs:
+    #     show_image_and_histogram(im)
+    #     show_image_and_histogram(im_test)
+    #     show_image_and_histogram(im_test_opencv)
+
     if porosity:
         im = im < porosity
+        im_test = im_test < porosity
+        im_test_opencv = im_test_opencv < porosity
+        im_test_clahe = im_test_clahe < porosity
+
+    print(np.sum(im)/im.ravel().shape[0])
+    print(np.sum(im_test)/im_test.ravel().shape[0])
+    print(np.sum(im_test_opencv) / im_test_opencv.ravel().shape[0])
+    print(np.sum(im_test_clahe) / im_test_clahe.ravel().shape[0])
+
+    if show_figs:
+        show_image_and_histogram(im)
+        show_image_and_histogram(im_test)
+        show_image_and_histogram(im_test_opencv)
+        show_image_and_histogram(im_test_clahe)
+
+    if show_figs:
+        plt.show()
+
     return im
+
+
+def show_image_and_histogram(im):
+    plt.figure()
+    plt.imshow(im, cmap='gray')
+    # g_im = np.ravel(im)
+    # plt.figure()
+    # plt.hist(g_im, 255, [0, 1], density=True)
+
+
+@time_measurement
+def image_histogram_equalization(image, number_bins=256):
+    # from http://www.janeriksolem.net/2009/06/histogram-equalization-with-python-and.html
+
+    # get image histogram
+    image_histogram, bins = np.histogram(image.flatten(), number_bins, density=True)
+    cdf = image_histogram.cumsum() # cumulative distribution function
+    cdf = 255 * cdf / cdf[-1] # normalize
+
+    # use linear interpolation of cdf to find new pixel values
+    image_equalized = np.interp(image.flatten(), bins[:-1], cdf)
+
+    return image_equalized.reshape(image.shape), cdf
+
+
+@time_measurement
+def opencv_histogram_equalization(im):
+    img = np.uint8(cv2.normalize(im, None, 0, 255, cv2.NORM_MINMAX))
+    return cv2.equalizeHist(img)
+
+
+@time_measurement
+def opencv_clahe_hist_equal(im):
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    img = np.uint8(cv2.normalize(im, None, 0, 255, cv2.NORM_MINMAX))
+    return clahe.apply(img)
 
 
 def add_noise_to_image(im, high_value=1, low_value=0):
