@@ -61,21 +61,21 @@ def blobs(shape, k, porosity: float = 0.5, blobiness: int = 1, show_figs: bool =
     im = norm_to_uniform(im, scale=[0, 1])
     im_test, _ = image_histogram_equalization(im)
     im_test -= np.min(im_test)
-    im_test *= 1.0 / im_test.max()
+    im_test *= 1.0 / np.max(im_test)
 
     im_test_opencv = opencv_histogram_equalization(im)
     im_test_opencv -= np.min(im_test_opencv)
-    im_test_opencv = im_test_opencv / im_test_opencv.max()
+    im_test_opencv = im_test_opencv / np.max(im_test_opencv)
 
     im_test_clahe = opencv_clahe_hist_equal(im)
     im_test_clahe -= np.min(im_test_clahe)
-    im_test_clahe = im_test_clahe / im_test_clahe.max()
 
 
     # if show_figs:
     #     show_image_and_histogram(im)
     #     show_image_and_histogram(im_test)
     #     show_image_and_histogram(im_test_opencv)
+    im_test_clahe = im_test_clahe / np.max(im_test_clahe)
 
     if porosity:
         im = im < porosity
