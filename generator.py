@@ -83,10 +83,10 @@ def blobs(shape, k, porosity: float = 0.5, blobiness: int = 1, show_figs: bool =
     print(np.sum(im_test_clahe) / im_test_clahe.ravel().shape[0])
 
     if show_figs:
-        show_image_and_histogram(im)
-        show_image_and_histogram(im_test)
-        show_image_and_histogram(im_test_opencv)
-        show_image_and_histogram(im_test_clahe)
+        show_image_and_histogram(im, 'Porespy norm2uniform')
+        show_image_and_histogram(im_test, 'numpy hist eq')
+        show_image_and_histogram(im_test_opencv, 'opencv hist eq')
+        show_image_and_histogram(im_test_clahe, 'opencv clahe hist eq')
 
     if show_figs:
         plt.show()
@@ -94,12 +94,16 @@ def blobs(shape, k, porosity: float = 0.5, blobiness: int = 1, show_figs: bool =
     return im
 
 
-def show_image_and_histogram(im):
+def show_image_and_histogram(im, title=None):
     plt.figure()
     plt.imshow(im, cmap='gray')
+    if title:
+        plt.title(title)
     # g_im = np.ravel(im)
     # plt.figure()
     # plt.hist(g_im, 255, [0, 1], density=True)
+    # if title:
+    #     plt.title(title)
 
 
 @time_measurement
