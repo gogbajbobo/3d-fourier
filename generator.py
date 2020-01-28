@@ -95,8 +95,9 @@ def blobs(shape, k, porosity: float = 0.5, blobiness: int = 1, show_figs: bool =
 
 
 def show_image_and_histogram(im, title=None):
+    im2show = im[0, :, :] if np.size(im.shape) == 3 else im
     plt.figure()
-    plt.imshow(im, cmap='gray')
+    plt.imshow(im2show, cmap='gray')
     if title:
         plt.title(title)
     # g_im = np.ravel(im)
