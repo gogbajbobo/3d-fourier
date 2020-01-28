@@ -7,10 +7,12 @@ import numpy as np
 import generator
 
 
-im_size = 5000
-im_shape = np.ones(2, dtype=int) * im_size
+dim = 3
+im_size = 400
+im_shape = np.ones(dim, dtype=int) * im_size
+k = np.ones(dim)
 
-image = generator.blobs(im_shape, k=[1, 1], show_figs=True)
+image = generator.blobs(im_shape, k=k, show_figs=True)
 
 # plt.figure()
 # plt.imshow(image, cmap='gray')
