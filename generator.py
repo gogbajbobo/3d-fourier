@@ -124,15 +124,39 @@ def image_histogram_equalization(image, number_bins=256):
 
 @time_measurement
 def opencv_histogram_equalization(im):
-    img = np.uint8(cv2.normalize(im, None, 0, 255, cv2.NORM_MINMAX))
-    return cv2.equalizeHist(img)
+    _im = np.copy(im)
+    dim = np.size(_im.shape)
+    if dim == 2:
+        img = np.uint8(cv2.normalize(_im, None, 0, 255, cv2.NORM_MINMAX))
+        return cv2.equalizeHist(img)
+    elif dim == 3:
+        for i in range(_im.shape[0]):
+            im_slice = _im[i, :, :]
+            im_slice = np.uint8(cv2.normalize(im_slice, None, 0, 255, cv2.NORM_MINMAX))
+            im_slice = cv2.equalizeHist(im_slice)
+            _im[i, :, :] = im_slice
+        return _im
+    else:
+        raise ValueError('image dimension error')
 
 
 @time_measurement
 def opencv_clahe_hist_equal(im):
+    _im = np.copy(im)
+    dim = np.size(_im.shape)
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    img = np.uint8(cv2.normalize(im, None, 0, 255, cv2.NORM_MINMAX))
-    return clahe.apply(img)
+    if dim == 2:
+        img = np.uint8(cv2.normalize(_im, None, 0, 255, cv2.NORM_MINMAX))
+        return clahe.apply(img)
+    elif dim == 3:
+        for i in range(_im.shape[0]):
+            im_slice = _im[i, :, :]
+            im_slice = np.uint8(cv2.normalize(im_slice, None, 0, 255, cv2.NORM_MINMAX))
+            im_slice = clahe.apply(im_slice)
+            _im[i, :, :] = im_slice
+        return _im
+    else:
+        raise ValueError('image dimension error')
 
 
 def add_noise_to_image(im, high_value=1, low_value=0):
