@@ -60,8 +60,8 @@ def show_image(im, show_images=False):
 
 @profile
 def main():
-    size = 1000
-    dimensions = 2
+    size = 200
+    dimensions = 3
     show_images = False
     blobs(
         shape=sp.ones(dimensions, dtype=int) * size,
